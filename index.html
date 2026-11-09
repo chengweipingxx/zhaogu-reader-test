@@ -202,7 +202,7 @@ async function initializeUpdates() {
       if (syncBytes(keyFromLink).length !== 32) throw Error('测试链接中的密钥不完整');
       syncConfig = {...SYNC_DEFAULT, key:keyFromLink};
       write(SYNC_PREF, syncConfig);
-      try { history.replaceState(null, '', location.pathname+location.search); } catch {}
+      // 密钥只在链接片段中，不随HTTP请求发送；保留片段供苹果首次添加到桌面使用。
     }
     if (!syncConfig?.url || !syncConfig?.key) { syncStatus('请使用专用测试链接打开，或填写阅读密钥'); return; }
     const cached = await syncCache();
@@ -276,6 +276,7 @@ function checkBookUpdates(manual=false) {
   return syncPending;
 }
 function startBookUpdates() {
+  preparePrivateInstall();
   setTimeout(() => checkBookUpdates(false), 0);
   syncTimer = setInterval(() => {if (document.visibilityState === 'visible') checkBookUpdates(false);}, 60000);
   window.addEventListener('online', () => checkBookUpdates(false));
@@ -293,6 +294,23 @@ function startBookUpdates() {
       write(SYNC_PREF,config);
     } catch(error) {toast(error.message);}
   };
+}
+async function preparePrivateInstall() {
+  if (!syncConfig?.key || location.protocol !== 'https:' || location.hostname === 'appassets.androidplatform.net') return;
+  try {
+    const link = document.querySelector('link[rel="manifest"]');
+    if (!link) return;
+    const manifestUrl = new URL(link.getAttribute('href'), location.href);
+    const manifest = await syncFetchJson(manifestUrl.href);
+    const start = new URL(manifest.start_url || './index.html', manifestUrl);
+    start.hash = new URLSearchParams({key:syncConfig.key}).toString();
+    manifest.start_url = start.href;
+    manifest.scope = new URL('./',manifestUrl).href;
+    manifest.id = new URL('./',manifestUrl).href;
+    manifest.icons = (manifest.icons || []).map(icon => ({...icon,src:new URL(icon.src,manifestUrl).href}));
+    // 私人安装清单只在本机内存生成，密钥不会上传到网站。
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  } catch { /* 不影响阅读；离线时仍可使用已安装的入口。 */ }
 }
 
 applyPrefs();document.fonts.ready.then(async()=>{await initializeUpdates();setupBook();window.__readerReady=true;if(book.id===builtin.id&&!read('zhaogu-reader-welcomed-v1',false)){openToc(false);write('zhaogu-reader-welcomed-v1',true)}startBookUpdates()});
