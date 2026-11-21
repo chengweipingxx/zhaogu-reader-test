@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "bookId": "zhaogu-changsheng",
-  "revision": "7b8fca680b011df78dbb8ea54dc6414766f2e22b7e93dd692d88f0665127f314",
-  "sequence": 1795290587010,
-  "chapterCount": 140,
-  "file": "book-7b8fca680b011df78dbb8ea54dc6414766f2e22b7e93dd692d88f0665127f314.json",
-  "updatedAt": "2026-11-21T19:49:47.016Z"
+  "revision": "f5552f45537b523c0902884b59a477b396a4f6809bf75913bca1fb85c8ef8b14",
+  "sequence": 1795290776462,
+  "chapterCount": 150,
+  "file": "book-f5552f45537b523c0902884b59a477b396a4f6809bf75913bca1fb85c8ef8b14.json",
+  "updatedAt": "2026-11-21T19:52:56.466Z"
 }
